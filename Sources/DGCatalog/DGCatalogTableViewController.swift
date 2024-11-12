@@ -10,10 +10,23 @@ import UIKit
 
 open class DGCatalogTableViewController: UITableViewController {
 
+    var searchController: UISearchController!
+
+    open override func viewDidLoad() {
+        super.viewDidLoad()
+
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.placeholder = "Search"
+        tableView.tableHeaderView = searchController.searchBar
+    }
+
     private(set) var node: DGCatalogNode?
+    private var filteredNodes: [DGCatalogNode]?
 
     public func reloadData(with node: DGCatalogNode) {
         self.node = node
+        self.filteredNodes = node.children
         tableView.reloadData()
     }
     
@@ -22,11 +35,11 @@ open class DGCatalogTableViewController: UITableViewController {
     }
 
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return node?.children.count ?? 0
+        return filteredNodes?.count ?? 0
     }
 
     public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let node = node?.children[indexPath.row] as? DGCatalogNode else {
+        guard let node = filteredNodes?[indexPath.row] else {
             return UITableViewCell()
         }
 
@@ -36,13 +49,30 @@ open class DGCatalogTableViewController: UITableViewController {
     }
 
     public override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let node = node?.children[indexPath.row] as? DGCatalogNode else {
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        guard let node = filteredNodes?[indexPath.row] else {
             return
         }
 
-        tableView.deselectRow(at: indexPath, animated: true)
-
         node.representer?.navigate(node, from: self)
+
+        searchController.dismiss(animated: true)
+    }
+
+}
+
+extension DGCatalogTableViewController: UISearchResultsUpdating {
+
+    public func updateSearchResults(for searchController: UISearchController) {
+        guard let searchText = searchController.searchBar.text, !searchText.isEmpty else {
+            filteredNodes = node?.children
+            tableView.reloadData()
+            return
+        }
+
+        filteredNodes = node?.children.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        tableView.reloadData()
     }
 
 }

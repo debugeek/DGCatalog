@@ -12,7 +12,6 @@ import DGCatalog
 class NodeRepresenter: DGCatalogNodeRepresenter {
     
     func navigate(_ node: DGCatalogNode, from viewController: DGCatalogTableViewController) {
-
         if node.options.contains(.expandable) {
             let targetViewController = DGCatalogTableViewController(style: .plain)
             targetViewController.reloadData(with: node)
