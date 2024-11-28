@@ -15,12 +15,17 @@ open class DGCatalog {
 
     private var nodes = [String: DGCatalogNode]()
     private var nodeRepresenters = [String: DGCatalogNodeRepresenter]()
+    private var defaultNodeRepresenter: DGCatalogNodeRepresenter?
 
     public init() {
         root = DGCatalogNode(identifier: DGCatalogNodeIdentifierRoot, options: .root, name: "")
         nodes[DGCatalogNodeIdentifierRoot] = root
     }
 
+    public func registerNodeRepresenter(_ nodeRepresenter: DGCatalogNodeRepresenter) {
+        defaultNodeRepresenter = nodeRepresenter
+    }
+    
     public func registerNodeRepresenter(_ nodeRepresenter: DGCatalogNodeRepresenter, for identifier: String) {
         nodeRepresenters[identifier] = nodeRepresenter
     }
@@ -32,7 +37,7 @@ open class DGCatalog {
             return false
         }
         let node = DGCatalogNode(identifier: identifier, options: options, name: name)
-        node.representer = nodeRepresenters[identifier]
+        node.representer = nodeRepresenters[identifier] ?? defaultNodeRepresenter
         parent.addChild(node)
         nodes[identifier] = node
 
